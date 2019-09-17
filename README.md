@@ -1,2 +1,2 @@
 # embASP_tester
-Tools for testing EmbASP functionalities
+Tools for testing EmbASP functionalities.

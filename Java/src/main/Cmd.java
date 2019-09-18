@@ -5,7 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public final class Cmd {
+final class Cmd {
+	private Cmd() {
+		
+	}
+	
 	private static final void printLines(final String cmd, InputStream is) throws IOException {
     	String line;
     	final BufferedReader input = new BufferedReader(new InputStreamReader(is));

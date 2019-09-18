@@ -3,7 +3,11 @@ package main;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-class OutputManager {
+final class OutputManager {
+	private OutputManager() {
+		
+	}
+	
 	static final LinkedList <String> processRawOutput(final String solver, final String rawOutput) {
 		if(solver.equalsIgnoreCase("DLV"))
 			return processDLVOutput(rawOutput);

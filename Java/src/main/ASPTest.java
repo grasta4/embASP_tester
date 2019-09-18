@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,7 +24,7 @@ import it.unical.mat.embasp.specializations.dlv.desktop.DLVDesktopService;
 //import it.unical.mat.embasp.specializations.dlv2.desktop.DLV2DesktopService;
 
 public class ASPTest {
-	private static final String EXECUTION_TIMES_PATH = "files/executionTimes.csv";
+	private static final String CLASSES_PATH = "files/_classes", EXECUTION_TIMES_PATH = "files/executionTimes.csv";
 	
 	static enum Solver {
 		CLINGO, DLV, /*DLV2*/;
@@ -51,20 +48,8 @@ public class ASPTest {
 		}
 	}
 	
-	private static final void clearDir(final String dirPath) {
-		final Path path = Paths.get(dirPath);
-		
-		if(Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS))
-			try(final DirectoryStream <Path> entries = Files.newDirectoryStream(path)) {
-				for(Path entry : entries)
-					Files.delete(entry);
-			} catch (final IOException e) {
-				e.printStackTrace();
-			}
-	}
-	
 	private static final void loadClasses(final ASPMapper mapper) throws IOException {
-		try(final Stream<Path> paths = Files.walk(Paths.get("files/_classes"))) {
+		try(final Stream<Path> paths = Files.walk(Paths.get(CLASSES_PATH))) {
 		    paths.filter(Files::isRegularFile).forEach(file -> {
 		    	try(final URLClassLoader loader = new URLClassLoader(new URL[] {file.getParent().toUri().toURL()})) {
 	    			final String fullClassName = file.getFileName().toString();
@@ -85,19 +70,6 @@ public class ASPTest {
 		return sorted;
 	}
 	
-	private static final void writeToFile(final String file, final String string, final Boolean newLineBegin, final boolean semicolon) {
-		String tmp = string + (semicolon ? ';' : "");
-		
-		if(newLineBegin != null)
-			tmp = newLineBegin ? '\n' + string + (semicolon ? ';' : "") : string + (semicolon ? ";\n" : '\n');
-		
-		try {
-			Files.write(Paths.get(file), tmp.getBytes(), StandardOpenOption.APPEND);
-		}catch(final IOException e) {
-		    e.printStackTrace();
-		}
-	}
-	
 	public static void main(String[] args) {
 		if(args.length <= 1) {
 			System.out.println("USAGE: ASPTest input_file class1 [class2...]");
@@ -105,11 +77,11 @@ public class ASPTest {
 		}
 		
 		for(int i = 1; i < args.length; i++)
-			Cmd.run("javac -cp lib/embASP.jar -d files/_classes files/" + args[i]);
+			Cmd.run("javac -cp lib/embASP.jar -d " + CLASSES_PATH + " files/" + args[i]);
 		
 		try {
 			loadClasses(ASPMapper.getInstance());
-			writeToFile(EXECUTION_TIMES_PATH, args[0], true, true);
+			FileManager.writeToFile(EXECUTION_TIMES_PATH, args[0], true, true);
 		} catch(final IOException e) {
 			e.printStackTrace();
 		}
@@ -139,7 +111,7 @@ public class ASPTest {
 			
 			final long end = System.nanoTime();
 			
-			writeToFile(EXECUTION_TIMES_PATH, ((Long)((end - start) / 1000000)).toString(), null, true);
+			FileManager.writeToFile(EXECUTION_TIMES_PATH, ((Long)((end - start) / 1000000)).toString(), null, true);
 			
 			if(!answerSets.isEmpty())
 				answerSets.forEach(answerSet -> {
@@ -150,6 +122,6 @@ public class ASPTest {
 				});
 		}
 		
-		clearDir("files/_classes");
+		FileManager.clearDir(CLASSES_PATH);
 	}
 }

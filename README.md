@@ -12,7 +12,7 @@ Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** alrea
   - the ASP input file;
   - an optional file that contains options for the solvers (you can download the template at: )
     **IMPORTANT: specify option *-no-option-file* if you are not using this file**;
-  - the list of classes representing the predicates in the ASP program, listed one after the other.
+  - an array containing classes representing the predicates in the ASP program.
  - Execute.
  
 ### Python

@@ -21,45 +21,52 @@ import it.unical.mat.embasp.platforms.desktop.DesktopHandler;
 import it.unical.mat.embasp.platforms.desktop.DesktopService;
 import it.unical.mat.embasp.specializations.clingo.desktop.ClingoDesktopService;
 import it.unical.mat.embasp.specializations.dlv.desktop.DLVDesktopService;
-//import it.unical.mat.embasp.specializations.dlv2.desktop.DLV2DesktopService;
+import it.unical.mat.embasp.specializations.dlv2.desktop.DLV2DesktopService;
 
-public class ASPTest {
-	private static final String CLASSES_PATH = "files/_classes", EXECUTION_TIMES_PATH = "files/executionTimes.csv";
-	
+public final class ASPTest {
 	static enum Solver {
-		CLINGO, DLV, /*DLV2*/;
+		CLINGO, DLV, DLV2;
 		
 		String getOutputOption() {
 			switch(this) {
 				case CLINGO: return "--verbose=0";
 				case DLV: return "-silent";
-				//case DLV2: return "--competition-output";
+				case DLV2: return "--competition-output";
 				default: return null;
 			}
 		}
 		
-		DesktopService getService() {
+		DesktopService getService(final String solversFolder) {
 			switch(this) {
-				case CLINGO: return new ClingoDesktopService("rsc/clingo.solver");
-				case DLV: return new DLVDesktopService("rsc/dlv.solver");
-				//case DLV2: return new DLV2DesktopService("rsc/dlv2.solver");
+				case CLINGO: return new ClingoDesktopService(solversFolder + "clingo.solver");
+				case DLV: return new DLVDesktopService(solversFolder + "dlv.solver");
+				case DLV2: return new DLV2DesktopService(solversFolder + "dlv2.solver");
 				default: return null;
 			}
 		}
 	}
 	
-	private static final void loadClasses(final ASPMapper mapper) throws IOException {
-		try(final Stream<Path> paths = Files.walk(Paths.get(CLASSES_PATH))) {
+	public static final void importClasses(final String[] classes) throws IOException {
+		for(final String cls : classes)
+			Cmd.run("javac -cp lib/embASP.jar -d " + FileManager.CLASSES_PATH + " " + cls);
+		
+		try(final Stream<Path> paths = Files.walk(Paths.get(FileManager.CLASSES_PATH))) {
 		    paths.filter(Files::isRegularFile).forEach(file -> {
 		    	try(final URLClassLoader loader = new URLClassLoader(new URL[] {file.getParent().toUri().toURL()})) {
 	    			final String fullClassName = file.getFileName().toString();
 	    			
-	    			mapper.registerClass(loader.loadClass(fullClassName.substring(0, fullClassName.lastIndexOf('.'))));
+	    			ASPMapper.getInstance().registerClass(loader.loadClass(fullClassName.substring(0, fullClassName.lastIndexOf('.'))));
 				} catch(ClassNotFoundException | IllegalAnnotationException | IOException | ObjectNotValidException e) {
 					e.printStackTrace();
+					System.exit(-1);
 				}
 		    });
 		}
+	}
+	
+	public static final void loadClasses(final Class<?>[] classes) throws IllegalAnnotationException, ObjectNotValidException {
+		for(final Class<?> cls : classes)
+			ASPMapper.getInstance().registerClass(cls);
 	}
 	
 	private static final TreeSet <String> sortFacts(final Set <Object> answerSet) {
@@ -70,30 +77,23 @@ public class ASPTest {
 		return sorted;
 	}
 	
-	public static void main(String[] args) {
-		if(args.length <= 1) {
-			System.out.println("USAGE: ASPTest input_file class1 [class2...]");
-			System.exit(0);
-		}
-		
-		for(int i = 1; i < args.length; i++)
-			Cmd.run("javac -cp lib/embASP.jar -d " + CLASSES_PATH + " files/" + args[i]);
-		
-		try {
-			loadClasses(ASPMapper.getInstance());
-			FileManager.writeToFile(EXECUTION_TIMES_PATH, args[0], true, true);
-		} catch(final IOException e) {
-			e.printStackTrace();
-		}
+	public static void run(final String csvFile, final String solversDir, final String inputFile, final String optionFile) {
+		FileManager.writeToFile(csvFile, inputFile, true, true);
 		
 		for(final Solver solver : Solver.values()) {
+			if(!FileManager.solverPresent(solversDir, solver.name().toLowerCase() + ".solver"))
+				continue;
+			
 			final ASPInputProgram inputProgram = new ASPInputProgram();
-			final DesktopHandler handler = new DesktopHandler(solver.getService());
+			final DesktopHandler handler = new DesktopHandler(solver.getService(solversDir));
 			final LinkedList <Set <Object>> answerSets = new LinkedList <> ();
 			final int optionId = handler.addOption(new OptionDescriptor(solver.getOutputOption()));
 			
+			if(optionFile != null && !optionFile.isEmpty() && !optionFile.equalsIgnoreCase("-no-option-file"))
+				FileManager.readFilters(optionFile, solver.name()).forEach(filter -> handler.addOption(new OptionDescriptor(" " + filter)));
+			
 			handler.addProgram(inputProgram);
-			inputProgram.addFilesPath("files/" + args[0]);
+			inputProgram.addFilesPath(inputFile);
 			
 			final LinkedList <String> sortedOutput = OutputManager.processRawOutput(solver.name(), ((AnswerSets)(handler.startSync())).getAnswerSetsString());
 			
@@ -106,22 +106,24 @@ public class ASPTest {
 					answerSets.add(answerSet.getAtoms());
 				} catch(final IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | NoSuchMethodException | SecurityException e) {
 					e.printStackTrace();
+					System.exit(-1);
 				}
 			});
 			
 			final long end = System.nanoTime();
 			
-			FileManager.writeToFile(EXECUTION_TIMES_PATH, ((Long)((end - start) / 1000000)).toString(), null, true);
+			FileManager.writeToFile(csvFile, solver.name() + ":" + ((Long)((end - start) / 1000000)).toString(), null, true);
 			
 			if(!answerSets.isEmpty())
 				answerSets.forEach(answerSet -> {
 					final String tmp = String.join(" ", sortFacts(answerSet));
-					
+
 					if(!sortedOutput.contains(tmp))
 						System.out.println("ERROR! Original " + solver.name() + " output does not contain:\n" + tmp + "\n");
 				});
 		}
 		
-		FileManager.clearDir(CLASSES_PATH);
+		FileManager.clearDir(FileManager.CLASSES_PATH);
+		System.out.println("END");
 	}
 }

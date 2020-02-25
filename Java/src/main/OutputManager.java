@@ -1,7 +1,9 @@
 package main;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 final class OutputManager {
 	private OutputManager() {
@@ -11,8 +13,8 @@ final class OutputManager {
 	static final LinkedList <String> processRawOutput(final String solver, final String rawOutput) {
 		if(solver.equalsIgnoreCase("DLV"))
 			return processDLVOutput(rawOutput);
-		else
-			return processClingo_DLV2Output(rawOutput);
+		
+		return processClingo_DLV2Output(rawOutput);
 	}
 	
 	private static final LinkedList <String> processDLVOutput(final String rawOutput) {
@@ -32,10 +34,11 @@ final class OutputManager {
 		final LinkedList <String> sortedOutput = new LinkedList <> ();
 
 		for(final String str: rawOutput.split("\\r?\\n")) {
-			final String[] tokens = str.split("\\s+");
+			final List <String> tokens = Arrays.asList(str.split("\\.?\\s+"));
 			
-			Arrays.sort(tokens);
-			sortedOutput.add(String.join(" ", tokens));
+			tokens.removeIf(token -> token == null || token.isEmpty() || token.isBlank());
+			Collections.sort(tokens);
+			sortedOutput.add(String.join(" ", tokens).strip());
 		}
 		
 		return sortedOutput;

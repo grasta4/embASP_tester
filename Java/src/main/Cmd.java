@@ -24,14 +24,21 @@ final class Cmd {
     	printLines(command + " stdout:", process.getInputStream());
         printLines(command + " stderr:", process.getErrorStream());
         process.waitFor();
+        
+        final int exitValue = process.exitValue();
+        
         System.out.println(command + " exitValue: " + process.exitValue());
+        
+        if(exitValue != 0)
+        	System.exit(exitValue);
 	}
     
-    public static final void run(final String command) {
+    static final void run(final String command) {
     	try {
 			runProcess(command);
 		} catch (final InterruptedException | IOException e) {
 			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 }

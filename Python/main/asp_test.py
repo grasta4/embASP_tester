@@ -11,8 +11,6 @@ from file_manager import FileManager
 from output_manager import OutputManager
 import importlib, inspect, os, re, shutil, sys, time
 
-CLASSES_PATH = '../classes/'
-
 class Solver(Enum):
     CLINGO = 'clingo'
     DLV = 'dlv'
@@ -38,12 +36,16 @@ class Solver(Enum):
     def get_solvers():
         return [Solver.CLINGO, Solver.DLV, Solver.DLV2]
 
-def load_classes(mapper):
-    for file in os.listdir(CLASSES_PATH):
+def import_classes_dir(classes_dir):
+    for file in os.listdir(classes_dir):
         if file.endswith('.py'):
             for cls in inspect.getmembers(importlib.import_module(file[:-3]), inspect.isclass):
                 if cls[1] is not Predicate:
-                    mapper.register_class(cls[1])
+                    ASPMapper.get_instance().register_class(cls[1])
+
+def load_classes(classes):
+    for cls in classes:
+        ASPMapper.get_instance().register_class(cls)
 
 def sort_facts(answer_set):
     sorted_ = []
@@ -55,11 +57,7 @@ def sort_facts(answer_set):
     
     return sorted_
 
-def run(csv_file, solvers_dir, input_file, option_file, classes):
-    for index in range(0, len(classes)):
-        shutil.copyfile(classes[index], CLASSES_PATH + re.search(r'[^/]+$', classes[index]).group())
-
-    load_classes(ASPMapper.get_instance())
+def run(csv_file, solvers_dir, input_file, option_file):
     FileManager.write_to_file(csv_file, 'a', input_file, True, True)
 
     for solver in Solver.get_solvers():
@@ -98,5 +96,4 @@ def run(csv_file, solvers_dir, input_file, option_file, classes):
                 if tmp not in sorted_output:
                     print('ERROR! Original ' + solver.value + ' output does not contain:\n' + tmp + '\n')
 
-    FileManager.clear_dir(CLASSES_PATH)
     print('END')

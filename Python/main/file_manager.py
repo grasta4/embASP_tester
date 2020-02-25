@@ -1,21 +1,7 @@
 from os import listdir
 from os.path import isfile, join
-import os, shutil
 
 class FileManager(object):
-    @staticmethod
-    def clear_dir(directory):
-        for file in os.listdir(directory):
-            if file == '__init__.py':
-                continue
-
-            file_path = os.path.join(directory, file)
-            
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path): 
-                shutil.rmtree(file_path)
-
     @staticmethod
     def solver_present(solvers_dir, solver_name):
         for file in listdir(solvers_dir):
@@ -29,7 +15,7 @@ class FileManager(object):
         with open(file_name) as file:
             content = file.readlines()
         
-        filters = [];
+        filters = []
         
         for fil in content:
             if fil.startswith(match_solver + ':'):

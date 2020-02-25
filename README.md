@@ -11,7 +11,7 @@ Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** alrea
   - Import the **.egg** in your project.
   - Provide alternately:
     - an array containing classes representing the predicates in the ASP program to the **load_classes** method;
-    - the path to the directory containing the modules for such classes to the **import_classes_dir** method, if you want the tester to import them for you (**IMPORTANT: in the case, use same name, same case for the class and the .py file**);
+    - the path to the directory containing the modules for such classes to the **import_classes_dir** method, if you want the tester to import them for you (**IMPORTANT: in this case, use same name, same case for the class and the .py file**);
   - Provide the **_run_** method with the following ordered paramenters:
     - the **.csv** file where you want the solvers' running times to be stores (you can download the template [here](https://github.com/grasta4/embASP_tester/blob/master/templates/executionTimes.csv));
     - the directory that contains the solver (*CLINGO*, *DLV* and *DLV2* are supported);

@@ -11,7 +11,7 @@ Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** alrea
   - Import the **.egg** in your project.
   - Provide alternately:
     - an array containing classes representing the predicates in the ASP program to the **load_classes** method;
-    - the path to the directory containing the modules for such classes to the **import_classes_dir** method, if you want the tester to import them for you ;
+    - the path to the directory containing the modules for such classes to the **import_classes_dir** method, if you want the tester to import them for you;
   - Provide the **_run_** method with the following ordered paramenters:
     - the **.csv** file where you want the solvers' running times to be stores (you can download the template at: );
     - the directory that contains the solver (*CLINGO*, *DLV* and *DLV2* are supported);

@@ -5,7 +5,7 @@
 Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** already imported in your project.
 
 ### Java
-  - Coming soon 
+  - Coming soon...
 
 ### Python
   - Import the **.egg** in your project.

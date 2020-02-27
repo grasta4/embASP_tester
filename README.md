@@ -8,7 +8,7 @@ Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** alrea
   - Import the **.jar** in your project.
   - Provide alternately:
     - an array containing classes representing the predicates in the ASP program to the **_loadClasses_** method;
-    - an array with the paths to the **.java** files containing the such classes.
+    - an array with the paths to the **.java** files containing such classes to the **_importClasses_** method.
   - _Same as Python from this point on..._
   
 ### Python

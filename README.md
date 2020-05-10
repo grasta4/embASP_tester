@@ -24,5 +24,5 @@ Be sure to have a working version of **EmbASP** and the **ANTLR4 Runtime** alrea
   - Execute.
   
 ### C#
-  - You're probably better off using the source files in your project instead of importing the library (can't guarantee the **.dll** dependencies to be always up to date).
+  - You're probably better off using the source files in your project instead of importing the library (we can't guarantee the **.dll** dependencies to be always up to date).
   - _Follow the steps specified for the other versions..._
